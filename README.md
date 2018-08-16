@@ -1,7 +1,7 @@
-# ![alt text](/images/cfm-top.png) Bare Metal Integration Testbed setup (1vQFX and 6 VMs)
+# ![alt text](/Images/cfm-top.png) Bare Metal Integration Testbed setup (1vQFX and 6 VMs)
 
 
-![Web Console](/images/cfm-1vqfx-5srv-topology.png)
+![Web Console](/Images/cfm-1vqfx-5srv-topology.png)
 
 
 The main code of this repository is taken from [Juniper/vqfx10k-vagrant](https://github.com/Juniper/vqfx10k-vagrant) to create a Testbed for TSN testing.
@@ -37,7 +37,7 @@ Follow these steps for GUI access via FoxyProxy.
 3- Click on "Add to Firefox"
 
 
-![Web Console](/images/FoxyProxy-Install.png)
+![Web Console](/Images/FoxyProxy-Install.png)
 
 Now open ssh port forwading session to physical server using port 1080. please change IP as per your host config
 
