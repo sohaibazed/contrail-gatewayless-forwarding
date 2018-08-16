@@ -47,11 +47,11 @@ your-laptop> ssh root@<< physical server ip>> -D 1080
 
 Configure FireFox FoxyProxy add-on by configuring "127.0.0.1" & port 1080 as Scoks4 as captured in screenshot.
 
-![Web Console](/images/FoxyProxy-Configure.png)
+![Web Console](/Images/FoxyProxy-Configure.png)
 
 Now enable FoxyProxy add-on by selecting the profile created earlier and open Contrail GUI using IP address of Vagrant VM https://192.168.100.11:8143
 
-![Web Console](/images/FoxyProxy-Contrail-GUI-k8s.png)
+![Web Console](/Images/FoxyProxy-Contrail-GUI-k8s.png)
 
 ## Access Contrail and Openstack UIs
 
