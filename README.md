@@ -1,4 +1,4 @@
-# ![alt text](/Images/cfm-top.png) Bare Metal Integration Testbed setup (1vQFX and 6 VMs)
+# ![alt text](/Images/cfm-top.png) Gateway Less Forwarding Usecase Testbed (1vQFX and 4 VMs)
 
 
 ![Web Console](/Images/cfm-1vqfx-5srv-topology.png)
