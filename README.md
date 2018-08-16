@@ -13,7 +13,7 @@ The main code of this repository is taken from [Juniper/vqfx10k-vagrant](https:/
   * 2 Compute Nodes
 
 **Prerequisites**: A host machine with Ubuntu/CentOS OS preinstalled with Vagrant & VirtualBox SW.
-
+For Vagrant and VirtualBox setup (vagrant-host-setup/README.md)
 
 ```bash
 host> git@gitlab.com:sohaibazed/contrail-gatewayless-forwarding.git
