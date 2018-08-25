@@ -60,12 +60,13 @@ $subnet_ctrl_data= "172.16.1"
     (1..3).each do |id|
        srv_name = ( "srv" + id.to_s ).to_sym
         config.vm.define srv_name do |srv|
-            srv.vm.box = "qarham/CentOS7.5-350GB"
+            srv.vm.box = "sohaibazed/centos7"
+	    srv.vm.box_version = "7.5"
             srv.vm.hostname = "srv#{id}"
             srv.vm.network "public_network", bridge: "br1", ip:"#{$subnet_mgmt}.#{id+10}"
             srv.vm.network 'private_network', ip: "#{$subnet_ctrl_data}.#{id+100}", nic_type: '82540EM', virtualbox__intnet: "seg#{id}"
             srv.ssh.insert_key = true
-            srv.vm.provision "shell", path: "scripts/ntp.sh"
+            #srv.vm.provision "shell", path: "scripts/ntp.sh"
             srv.vm.provision "shell",
                inline: "sudo route add -net 172.16.0.0 netmask 255.255.0.0 gw 172.16.1.1"
         config.vm.provider :virtualbox do |vb|
@@ -77,12 +78,13 @@ $subnet_ctrl_data= "172.16.1"
 
 
     config.vm.define "provision" do |p|
-            p.vm.box = "qarham/CentOS7.5-350GB"
+            p.vm.box = "sohaibazed/centos7"
+            p.vm.box_version = "7.5"
             p.vm.hostname = "provision"
             p.vm.network "public_network", bridge: "br1", ip:"#{$subnet_mgmt}.16"
             p.vm.network 'private_network', ip: "#{$subnet_ctrl_data}.106", nic_type: '82540EM', virtualbox__intnet: "seg6"
             p.ssh.insert_key = true
-            p.vm.provision "shell", path: "scripts/ntp.sh"
+            #p.vm.provision "shell", path: "scripts/ntp.sh"
             p.vm.provision "file", source: "instances.yaml", destination: "/home/vagrant/instances.yaml"
             p.vm.provision "file", source: "contrail-ansible-deployer-5.0.0-0.40.tgz", destination: "/home/vagrant/contrail-ansible-deployer-5.0.0-0.40.tgz"
             p.vm.provision "shell",
