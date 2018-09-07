@@ -49,12 +49,17 @@ NETMASK=255.255.255.0
 ONBOOT=yes
 TYPE=Bridge
 NM_CONTROLLED=no
+```
 
-cat /etc/sysconfig/network-scripts/ifcfg-en1
-NM_CONTROLLED=no
-BOOTPROTO=none
-DEVICE=eno1
-TYPE=Ethernet
+### br2 interface config
+
+```bash
+cat /etc/sysconfig/network-scripts/ifcfg-br2
+DEVICE=br2
+BOOTPROTO=static
+IPADDR=192.168.101.10
+NETMASK=255.255.255.0
 ONBOOT=yes
-BRIDGE=br1
+TYPE=Bridge
+NM_CONTROLLED=no
 ```
