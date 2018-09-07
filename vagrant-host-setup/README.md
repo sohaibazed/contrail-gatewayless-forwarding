@@ -15,29 +15,6 @@ Note: "setup_vagrant_centos.sh" script will take care of installtion of VirtualB
 
 In case you would also like setting up bridge interfaces for the Host please use following config as reference.
 
-### br0 interface config
-
-```bash
-cat /etc/sysconfig/network-scripts/ifcfg-br0
-DEVICE=br0
-BOOTPROTO=static
-IPADDR=10.13.132.65
-NETMASK=255.255.254.0
-GATEWAY=10.13.132.1
-DNS1=8.8.8.8
-ONBOOT=yes
-TYPE=Bridge
-NM_CONTROLLED=no
-
-cat /etc/sysconfig/network-scripts/ifcfg-eno0
-NM_CONTROLLED=no
-BOOTPROTO=none
-DEVICE=eno0
-TYPE=Ethernet
-ONBOOT=yes
-BRIDGE=br0
-```
-
 ### br1 interface config
 
 ```bash
