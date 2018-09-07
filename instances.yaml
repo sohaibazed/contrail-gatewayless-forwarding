@@ -1,5 +1,7 @@
 global_configuration:
-  CONTAINER_REGISTRY: opencontrailnightly
+  CONTAINER_REGISTRY: hub.juniper.net/contrail
+  CONTAINER_REGISTRY_USERNAME: JNPR-FieldUser30
+  CONTAINER_REGISTRY_PASSWORD: xRenAC86EKS5rBhv9UM4
 provider_config:
   bms:
     ssh_user: root
@@ -33,13 +35,16 @@ instances:
     roles:
       openstack_compute:
       vrouter:
+        TSN_EVPN_MODE: True
         VROUTER_GATEWAY: 172.16.1.1
 contrail_configuration:
-  CONTRAIL_VERSION: ocata-5.0-94
+  #CONTRAIL_VERSION: ocata-5.0-94
+  CONTRAIL_VERSION: 5.0.1-0.214-ocata  
   CLOUD_ORCHESTRATOR: openstack
   UPGRADE_KERNEL: True
   RABBITMQ_NODE_PORT: 5673
   VROUTER_GATEWAY: 172.16.1.1
+  TSN_NODES: 192.168.100.13
   ENCAP_PRIORITY: VXLAN,MPLSoUDP,MPLSoGRE
   AUTH_MODE: keystone
   KEYSTONE_AUTH_HOST: 192.168.100.11
