@@ -30,6 +30,20 @@ $subnet_mgmt = "192.168.100"
 $subnet_ctrl_data= "172.16.1"
 ```
 
+### Install Contrail Command on Provision VM
+
+```
+yum install -y yum-utils device-mapper-persistent-data lvm2 
+yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+yum install -y docker-ce 
+systemctl start docker
+systemctl enable docker
+docker login hub.juniper.net --username JNPR-FieldUser30 --password xRenAC86EKS5rBhv9UM4
+docker pull hub.juniper.net/contrail/contrail-command-deployer:5.0.1-0.214
+docker run -t --net host -v /root/command_servers.yml:/command_servers.yml -d --privileged --name contrail_command_deployer hub.juniper.net/contrail/contrail-command-deployer:5.0.1-0.214
+docker logs -f contrail_command_deployer
+```
+
 ### How to use Foxy Proxy for GUI access
 
 Follow these steps for GUI access via FoxyProxy.
