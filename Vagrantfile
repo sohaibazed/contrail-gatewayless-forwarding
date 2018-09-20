@@ -79,18 +79,18 @@ $subnet_ctrl_data= "172.16.1"
 
 
 
-    config.vm.define "provision" do |p|
+    config.vm.define "contrail-command" do |p|
             p.vm.box = "sohaibazed/centos7"
             p.vm.box_version = "7.5"
-            p.vm.hostname = "provision"
+            p.vm.hostname = "command"
             p.vm.network "public_network", bridge: "br1", ip:"#{$subnet_mgmt}.15"
             p.vm.network 'private_network', ip: "#{$subnet_ctrl_data}.105", nic_type: '82540EM', virtualbox__intnet: "seg5"
             p.ssh.insert_key = true
             p.vm.provision "shell", path: "scripts/ntp.sh"
             p.vm.provision "file", source: "instances.yaml", destination: "/home/vagrant/instances.yaml"
             p.vm.provision "file", source: "contrail-ansible-deployer-5.0.0-0.40.tgz", destination: "/home/vagrant/contrail-ansible-deployer-5.0.0-0.40.tgz"
-            p.vm.provision "shell",
-               inline: $script
+#            p.vm.provision "shell",
+#               inline: $script
         config.vm.provider :virtualbox do |vb|
             vb.customize ["modifyvm", :id, "--memory", "2048", "--cpus", "1"]
         end 
