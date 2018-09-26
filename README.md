@@ -8,9 +8,10 @@ The main code of this repository is taken from [Juniper/vqfx10k-vagrant](https:/
 
 * 1 vQFX 10K
 * 4 VMs CentOS 7.5
-  * 1 Provision VM
+  * 1 Contrail Command VM
   * 1 Contrail Controller
   * 2 Compute Nodes
+  * 1 BareMetal VM
 
 **Prerequisites**: A host machine with Ubuntu/CentOS OS preinstalled with Vagrant & VirtualBox SW.
 
@@ -32,10 +33,10 @@ $subnet_ctrl_data= "172.16.1"
 
 ### Install Contrail Command on Provision VM
 
-```
-yum install -y yum-utils device-mapper-persistent-data lvm2 
+```bash
+yum install -y yum-utils device-mapper-persistent-data lvm2
 yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-yum install -y docker-ce 
+yum install -y docker-ce
 systemctl start docker
 systemctl enable docker
 docker login hub.juniper.net --username JNPR-FieldUser30 --password xRenAC86EKS5rBhv9UM4
@@ -43,6 +44,192 @@ docker pull hub.juniper.net/contrail/contrail-command-deployer:5.0.1-0.214
 docker run -t --net host -v /root/command_servers.yml:/command_servers.yml -d --privileged --name contrail_command_deployer hub.juniper.net/contrail/contrail-command-deployer:5.0.1-0.214
 docker logs -f contrail_command_deployer
 ```
+
+Sample command_servers.yml file used to install contrail command
+
+```yaml
+---
+command_servers:
+    server1:
+        ip: 192.168.100.15
+        connection: ssh
+        ssh_user: root
+        ssh_pass: c0ntrail123
+        sudo_pass: c0ntrail123
+        ntpserver: 66.129.255.62
+
+        # Specify either container_path
+        #container_path: /root/contrail-command-051618.tar
+        # or registry details and container_name
+        # registry_insecure: true
+        # container_registry: ci-repo.englab.juniper.net:5010
+        container_registry: hub.juniper.net/contrail
+        container_name: contrail-command
+        #container_tag: 5.0-214
+        container_tag: 5.0.1-0.214
+        #container_registry_username: username@juniper.net
+        #container_registry_password: passwordforregistry
+        config_dir: /etc/contrail
+
+        # contrail command container configurations given here go to /etc/contrail/contrail.yml
+        contrail_config:
+            # Database configuration. MySQL/PostgreSQL supported
+            database:
+                # MySQL example
+                type: mysql
+                dialect: mysql
+                host: localhost
+                user: root
+                password: contrail123
+                name: contrail_test
+                # Postgres example
+                #connection: "user=root dbname=contrail_test sslmode=disable"
+                #type: postgres
+                #dialect: postgres
+
+                # Max Open Connections for DB Server
+                max_open_conn: 100
+                connection_retries: 10
+                retry_period: 3s
+
+            # Log Level
+            log_level: debug
+
+            # Server configuration
+            server:
+              enabled: true
+              read_timeout: 10
+              write_timeout: 5
+              log_api: true
+              address: ":9091"
+
+              # TLS Configuration
+              tls:
+                  enabled: true
+                  key_file: /usr/share/contrail/ssl/cs-key.pem
+                  cert_file: /usr/share/contrail/ssl/cs-cert.pem
+
+              # Enable GRPC or not
+              enable_grpc: false
+
+              # Static file config
+              # key: URL path
+              # value: file path. (absolute path recommended in production)
+              static_files:
+                  /: /usr/share/contrail/public
+
+              # API Proxy configuration
+              # key: URL path
+              # value: String list of backend host
+              #proxy:
+              #    /contrail:
+              #    - http://localhost:8082
+
+              notify_etcd: false
+
+            # Keystone configuration
+            keystone:
+                local: true
+                assignment:
+                    type: static
+                    data:
+                      domains:
+                        default: &default
+                          id: default
+                          name: default
+                      projects:
+                        admin: &admin
+                          id: admin
+                          name: admin
+                          domain: *default
+                        demo: &demo
+                          id: demo
+                          name: demo
+                          domain: *default
+                      users:
+                        admin:
+                          id: admin
+                          name: Admin
+                          domain: *default
+                          password: contrail123
+                          email: admin@juniper.nets
+                          roles:
+                          - id: admin
+                            name: Admin
+                            project: *admin
+                        bob:
+                          id: bob
+                          name: Bob
+                          domain: *default
+                          password: bob_password
+                          email: bob@juniper.net
+                          roles:
+                          - id: Member
+                            name: Member
+                            project: *demo
+                store:
+                    type: memory
+                    expire: 3600
+                insecure: true
+                authurl: https://localhost:9091/keystone/v3
+
+            # disable authentication with no_auth true and comment out keystone configuraion.
+            #no_auth: true
+            insecure: true
+
+            etcd:
+              endpoints:
+                - localhost:2379
+              username: ""
+              password: ""
+              path: contrail
+
+            watcher:
+              enabled: false
+              storage: json
+
+            client:
+              id: admin
+              password: contrail123
+              project_id: admin
+              domain_id: default
+              schema_root: /
+              endpoint: https://localhost:9091
+
+            compilation:
+              enabled: false
+              # Global configuration
+              plugin_directory: 'etc/plugins/'
+              number_of_workers: 4
+              max_job_queue_len: 5
+              msg_queue_lock_time: 30
+              msg_index_string: 'MsgIndex'
+              read_lock_string: "MsgReadLock"
+              master_election: true
+
+              # Plugin configuration
+              plugin:
+                  handlers:
+                      create_handler: 'HandleCreate'
+                      update_handler: 'HandleUpdate'
+                      delete_handler: 'HandleDelete'
+
+            agent:
+              enabled: true
+              backend: file
+              watcher: polling
+              log_level: debug
+
+         # The following are optional parameters used to patch/cherrypick
+         # revisions into the contrail-ansible-deployer sandbox. These configs
+         # go into the /etc/contrail/contrail-cluster.tmpl file
+#        cluster_config:
+#            ansible_fetch_url: "https://review.opencontrail.org/Juniper/contrail-ansible-deployer refs/changes/80/40780/20"
+#            ansible_cherry_pick_revision: FETCH_HEAD
+#            ansible_revision: GIT_COMMIT_HASH
+```
+
+
 
 ### How to use Foxy Proxy for GUI access
 
@@ -64,16 +251,35 @@ Configure FireFox FoxyProxy add-on by configuring "127.0.0.1" & port 1080 as Sco
 
 ![Web Console](/Images/FoxyProxy-Configure.png)
 
-Now enable FoxyProxy add-on by selecting the profile created earlier and open Contrail GUI using IP address of Vagrant VM https://192.168.100.11:8143
+Now enable FoxyProxy add-on by selecting the profile created earlier and open Contrail GUI using IP address of Vagrant Contrail Command VM https://192.168.100.15:9091
 
 ![Web Console](/Images/FoxyProxy-Contrail-GUI-k8s.png)
 
-## Access Contrail and Openstack UIs
+## Access Contrail Command UIs
 
 | Service   | URL                         | Username | Password    |
 | --------- | --------------------------- | -------- | ----------- |
-| openstack | http://192.168.100.11       | admin    | contrail123 |
-| contrail  | https://192.168.100.11:8143 | admin    | contrail123 |
+| Contrail Command | https://192.168.100.15:9091       | admin    | contrail123 |
+
+## Install Contrail cluster using Contrail Command UI.
+
+![Web Console](Images/cc-image1.png)
+![Web Console](Images/cc-image2.png)
+![Web Console](Images/cc-image3.png)
+![Web Console](Images/cc-image4.png)
+![Web Console](Images/cc-image5.png)
+![Web Console](Images/cc-image6.png)
+![Web Console](Images/cc-image7.png)
+![Web Console](Images/cc-image8.png)
+
+## Access Contrail UIs
+
+
+| Service   | URL                         | Username | Password    |
+| --------- | --------------------------- | -------- | ----------- |
+| Contrail Command | https://192.168.100.15:9091       | admin    | contrail123 |
+| Contrail UI | https://192.168.100.11:8143 | admin | contrail123 |
+| Openstack | http://192.168.100.11 | admin | contrail123 |
 
 
 ## Use Case 1: Contrail Security with Kubernetes, OpenStack and Bare Metal Server
@@ -143,99 +349,75 @@ Visualization is perhaps the most important pillar of Contrail Security. This gi
 
 ![Web Console](Images/uc1.8.png)
 
-## Use Case 2: Gateway-less forwarding
+## Use Case 2: Baremetal Integration using QFX switches
 
 ### Add QFX switches as BGP routers in Contrail
 
-1. Goto Configure > BGP routers > +
-2. Add all four QFX switches
-3. Under Address Families, add *inet*
-4. Under Associate Peers, add all of the control nodes.
+1. Log into contrail command UI
+2. Select fabric from the menu on left side and click "create" button
+![Web Console](Images/uc3.3.png)
+3. Select existing fabric and click "provision"
+![Web Console](Images/uc3.2.png)
+4. Type in the IP address and credentials for the QFX switches and click next
+![Web Console](Images/uc3.1.png)
+5. Contrail Command will scan the CIDR and discover QFX switches.
+6. Assign roles to discovered devices.
+![Web Console](Images/uc3.4.png)
+7. After the process is complete, edit the QFX switch and assign TSN node to the switches
+![Web Console](Images/uc3.5.png)
+8. Select cluster from the menu on the left side and select advance options and then BGP routers
+9. Edit all routers and contrail controllers and add inet.0 under address families.
 
-![Web Console](Images/uc2.1.png)
-![Web Console](Images/uc2.2.png)
-
-> make sure netconf and ssh is enabled on QFX switches before moving forward.
-
-1. Goto Configure > Physical Devices > Physical Routers > +
-2. Add all four QFX switches using netconf managed physical routers
-3. Under Address Families, add *inet*
-4. Under Associate Peers, add all of the control nodes.
-
-![Web Console](Images/uc2.3.png)
-
-5. after adding netconf based physical routers, you should see the following configurations in all qfx switches
+QFX switches are successfully added. you can ssh into the switch and run the following command to ensure it has an active bgp session with contrail controller nodes
 
 ```
-{master:0}[edit]
-juniperps@PSP6TORJ01# show groups __contrail__
-routing-options {
-    /* Global Routing Options */
-    router-id 70.191.50.2;
-    route-distinguisher-id 70.191.50.2;
-    autonomous-system 64019;
-    resolution {
-        rib bgp.rtarget.0 {
-            resolution-ribs inet.0;
-        }
-    }
-}
-protocols {
-    /* Protocols Configuration */
-    bgp {
-        /* BGP Router: PSP6TORJ01, UUID: 6c9487af-959e-480f-85e7-46cb1c4b69cf */
-        group _contrail_asn-64019 {
-            type internal;
-            local-address 70.191.50.2;
-            hold-time 90;
-            family evpn {
-                signaling;
-            }
-            family route-target;
-            /* BGP Router: PSP6TORJ04, UUID: e5cdb4ac-a09e-42fa-8aa5-85914b75eb2e */
-            neighbor 70.191.50.67 {
-                peer-as 64019;
-            }
-            /* BGP Router: PSP6TORJ03, UUID: 998995d0-c5fb-4e8d-be66-83639d7658ee */
-            neighbor 70.191.50.66 {
-                peer-as 64019;
-            }
-            /* BGP Router: psp6neosctr01, UUID: 0486974e-8fdf-4121-be7d-c089d3f59567 */
-            neighbor 70.191.50.6 {
-                peer-as 64019;
-            }
-            /* BGP Router: psp6neosctr02, UUID: 05d4f638-7f32-4f40-9a0e-00746848f72f */
-            neighbor 70.191.50.7 {
-                peer-as 64019;
-            }
-            /* BGP Router: psp6neosctr03, UUID: c17077c7-9d26-4e44-9bda-ee498a5bfcbc */
-            neighbor 70.191.50.8 {
-                peer-as 64019;
-            }
-        }
-    }
-}
-policy-options {
-    /* Policy Options */
-    community _contrail_switch_policy_ members target:64019:1;
-}
-switch-options {
-    vtep-source-interface lo0.0;
-}
+master:0}
+juniperps@PSP6TORJ04> show bgp summary
+70.191.50.69          64019         11         11       0       0        3:55 Establ
+  bgp.rtarget.0: 3/3/3/0
+  bgp.evpn.0: 0/0/0/0
+  default-switch.evpn.0: 0/0/0/0
+  __default_evpn__.evpn.0: 0/0/0/0
 ```
-6. add the following lines of configuration to each QFX switch manually
+
+the following command will list configuration pushed from contrail fabric Manager
+```
+{master:0}
+juniperps@PSP6TORJ04> show configuration groups | display set |match __*
+```
+
+### Add Bare metal server and attach it to a virtual networks
+
+1. Select Serves from the menu on left side and click "add" button
+2. type in the details of the bare metal servers
+![Web Console](Images/uc3.6.png)
+3. Goto Infrastructure > Instances. Create a new instances
+![Web Console](Images/uc3.7.png)
+![Web Console](Images/uc3.8.png)
+
+4. Log in the baremetal server and run the following command. Bare metal server will send DHCP request. The request will be routed to TSN node.
 
 ```
-{master:0}[edit]
-juniperps@PSP6TORJ01# set groups __contrail__ protocols bgp group _contrail_asn-64019 family inet unicast
-
-{master:0}[edit]
-juniperps@PSP6TORJ01# commit and-quit
-[edit protocols]
-configuration check succeeds
-commit complete
-Exiting configuration mode
+[root@psp6neoscmp05 ~]# pkill dhclient
+[root@psp6neoscmp05 ~]# dhclient p3p2
+[root@psp6neoscmp05 ~]# ifconfig p3p2
+p3p2: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 20.20.20.3  netmask 255.255.255.0  broadcast 20.20.20.255
+        ether a0:36:9f:bf:48:4a  txqueuelen 1000  (Ethernet)
+        RX packets 18393  bytes 6334689 (6.0 MiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 17556  bytes 1292304 (1.2 MiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
 ```
+
+5. Bare metal server is assigned IP address from virtual network "bn1"
+6. Create a virtual machine on the same virtual network and test connectivity.
+
+## Use Case 3: Gateway-less forwarding
+
+### Add QFX switches as BGP routers in Contrail
+QFX switches are added as part of use case 2.
+
 ### Create IPAM and Virtual networks
 1. Goto Configure > IP Address Management > +
 
