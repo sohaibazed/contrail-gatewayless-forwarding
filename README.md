@@ -281,6 +281,24 @@ Now enable FoxyProxy add-on by selecting the profile created earlier and open Co
 | Contrail UI | https://192.168.100.11:8143 | admin | contrail123 |
 | Openstack | http://192.168.100.11 | admin | contrail123 |
 
+## Compute Node QEMU (hypervisor/emulator) change if your Host does not support KVM HW virtualization (Nested mode)
+
+Note: You usually need that for VmWare or AWS setup which does not support HW virtualization. Your VM instance creation will fail and you have to make following changes in "nova-compute" before creating the workload.
+
+
+```bash
+vagrant ssh srv2
+vi /etc/kolla/nova-compute/nova.conf
+
+# Add last two line under [libvirt] section 
+[libvirt]
+connection_uri = qemu+tcp://192.168.2.12/system
+virt_type=qemu
+cpu_mode=none
+
+# After making changes restart "nova_compute" conatiner on the compute
+docker restart nova_compute
+```
 
 ## Use Case 1: Contrail Security with Kubernetes, OpenStack and Bare Metal Server
 
