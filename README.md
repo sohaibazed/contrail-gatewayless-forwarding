@@ -300,6 +300,25 @@ cpu_mode=none
 docker restart nova_compute
 ```
 
+## Basic Sanity Check (Not required for workshop)
+
+To make sure Cluster provisioning is successful and no issue let's create some work load using a simple basic sanity script "basic-sanity-test.sh".
+
+This script will perform following actions:
+* install OpenStack client 
+* Download and Add cirros images
+* Create VM flavors
+* Create TWO VNs VN01: 10.1.1.0/24 & VN02: 20.1.1.0/24
+* Instantiate two VMs in each VN (VN01 & VN02)
+
+```bash
+wget https://gitlab.com/sohaibazed/contrail-gatewayless-forwarding/raw/master/scripts/basic-sanity-test.sh
+chmod +x basic-sanity-test.sh
+
+./basic-sanity-test.sh
+
+ ```
+
 ## Use Case 1: Contrail Security with Kubernetes, OpenStack and Bare Metal Server
 
 ### Prereq
