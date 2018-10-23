@@ -309,7 +309,7 @@ This script will perform following actions:
 * Download and Add cirros images
 * Create VM flavors
 * Create TWO VNs VN01: 10.1.1.0/24 & VN02: 20.1.1.0/24
-* Instantiate two VMs in each VN (VN01 & VN02)
+* Instantiate VMs in each VN (VN01 & VN02)
 
 ```bash
 wget https://gitlab.com/sohaibazed/contrail-gatewayless-forwarding/raw/master/scripts/basic-sanity-test.sh
